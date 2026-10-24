@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scholarship AI | Student Application Guide</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">🎓 Scholarship<span>AI</span></a>
+  <nav><a href="#features">Features</a><a href="#checklist">Document checklist</a><a href="#assistant">AI assistant</a></nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">YOUR SCHOLARSHIP COMPANION</p>
+      <h1>Make your scholarship application <span>simpler.</span></h1>
+      <p class="intro">Understand application steps, prepare a document checklist, and get friendly guidance when a form shows an error.</p>
+      <a class="primary-link" href="#checklist">Build my checklist ↓</a>
+      <p class="small-note">Guidance only — final rules must be confirmed with the official scheme.</p>
+    </div>
+    <div class="hero-card">
+      <div class="card-icon">✓</div>
+      <h3>Your application, step by step</h3>
+      <ul>
+        <li>Understand form fields</li>
+        <li>Prepare relevant documents</li>
+        <li>Spot common mistakes</li>
+        <li>Check official scheme rules</li>
+      </ul>
+      <div class="progress"><span></span></div>
+      <p class="muted">One step at a time.</p>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <div class="section-heading"><p class="eyebrow">HOW WE HELP</p><h2>Less confusion. More confidence.</h2></div>
+    <div class="feature-grid">
+      <article class="feature"><div class="feature-icon purple">✦</div><h3>Form guidance</h3><p>Get simple explanations for common scholarship form fields.</p></article>
+      <article class="feature"><div class="feature-icon green">▤</div><h3>Document checklist</h3><p>Prepare a starting checklist based on the information you choose.</p></article>
+      <article class="feature"><div class="feature-icon orange">◎</div><h3>Error help</h3><p>Learn what to check when a form rejects an entry or shows an error.</p></article>
+    </div>
+  </section>
+
+  <section id="checklist" class="panel-section">
+    <div class="section-heading"><p class="eyebrow">PERSONALIZED STARTING POINT</p><h2>Build your document checklist</h2><p>Choose what applies. You do not need to enter your name, ID number, or bank details.</p></div>
+    <form class="profile-form" method="post" action="/checklist">
+      <label>Current education level
+        <select name="education" required>
+          <option value="">Select education</option>
+          {% for item in ["Diploma","Undergraduate degree","Postgraduate degree","ITI / vocational","Class 11–12","Other"] %}
+          <option value="{{ item }}" {% if profile and profile.education == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>State / Union Territory
+        <input name="state" placeholder="e.g. Maharashtra" value="{{ profile.state if profile else '' }}">
+      </label>
+      <label>Category (optional)
+        <select name="category">
+          {% for item in ["Prefer not to say","General","SC","ST","OBC","VJNT","SBC","EWS"] %}
+          <option value="{{ item }}" {% if profile and profile.category == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Do you have an income certificate?
+        <select name="income_certificate">
+          {% for item in ["Not sure","Yes","No"] %}
+          <option value="{{ item }}" {% if profile and profile.income_certificate == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Are you applying under a disability-related scheme?
+        <select name="disability">
+          {% for item in ["No","Yes"] %}
+          <option value="{{ item }}" {% if profile and profile.disability == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Do you live in a hostel?
+        <select name="hostel">
+          {% for item in ["No","Yes"] %}
+          <option value="{{ item }}" {% if profile and profile.hostel == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="primary-button" type="submit">Create my checklist</button>
+    </form>
+
+    {% if checklist_shown %}
+    <div class="results">
+      <h3>Your starting checklist</h3>
+      <p class="muted">Tick items as you collect them. These are general suggestions, not a scheme-specific official list.</p>
+      {% for doc in documents %}
+      <label class="check-row"><input type="checkbox"> <span>{{ doc }}</span></label>
+      {% endfor %}
+      <div class="notice"><strong>Before submitting:</strong> Confirm each requirement, file type, size, validity period and deadline in the latest official guidelines for your exact scheme and academic year.</div>
+    </div>
+    {% endif %}
+  </section>
+
+  <section id="assistant" class="chat-section">
+    <div class="section-heading"><p class="eyebrow">SCHOLARSHIP AI ASSISTANT</p><h2>What can I help you with?</h2><p>Ask about form fields, common errors, or documents to prepare.</p></div>
+    <div class="chat-box">
+      <div id="chat-messages" class="chat-messages" aria-live="polite">
+        <div class="bubble bot">Hi! 👋 I'm Scholarship AI. Ask me how to fill a form, fix a common error, or prepare your documents.</div>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" type="text" maxlength="2000" placeholder="e.g. What should I check before submitting?" autocomplete="off" required>
+        <button class="primary-button" type="submit">Send</button>
+      </form>
+      <p class="tiny">Do not enter passwords, OTPs, full Aadhaar numbers, bank account numbers, or upload identity documents here.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <strong>Scholarship AI</strong>
+  <p>Student support demo · Verify eligibility, deadlines, and required documents with the official scholarship authority.</p>
+</footer>
+
+<script>
+const form = document.getElementById("chat-form");
+const input = document.getElementById("chat-input");
+const messages = document.getElementById("chat-messages");
+
+function addBubble(text, who) {
+  const div = document.createElement("div");
+  div.className = "bubble " + who;
+  div.textContent = text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+  return div;
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const message = input.value.trim();
+  if (!message) return;
+  addBubble(message, "user");
+  input.value = "";
+  const pending = addBubble("Thinking…", "bot");
+  const button = form.querySelector("button");
+  button.disabled = true;
+  try {
+    const response = await fetch("/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message})
+    });
+    const data = await response.json();
+    pending.textContent = data.reply || "Sorry, I couldn't prepare an answer.";
+  } catch (error) {
+    pending.textContent = "I couldn't connect just now. Please try again.";
+  } finally {
+    button.disabled = false;
+    input.focus();
+    messages.scrollTop = messages.scrollHeight;
+  }
+});
+</script>
+</body>
+</html>
